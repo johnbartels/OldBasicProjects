@@ -1,0 +1,128 @@
+' =========================================================================
+'
+'   File...... Serial_LCD_Terminal.BS2
+'   Purpose... Serial LCD Debug Terminal Demo
+'   Author.... (c) Parallax, Inc. -- All Rights Reserved
+'   E-mail.... support@parallax.com
+'   Started...
+'   Updated... 11 FEB 2005
+'
+'   {$STAMP BS2}
+'   {$PBASIC 2.5}
+'
+' =========================================================================
+
+
+' -----[ Program Description ]---------------------------------------------
+
+' Uses the BASIC Stamp debug terminal to send characters to
+' the Serial LCD.
+'
+' Typed characters show up automatically on the display of
+' the Serial LCD.
+'
+' To send a command with a specific value:
+'   * Press [Esc]"
+'   * Enter the value (0 to 255)
+'   * Press [Return]
+'
+' This second direct command mode enables sending of all the
+' command codes, such as display on/off, cursor movement,
+' and custom characters. Note that decimal, hexadecimal, and
+' even binary input may be used.
+
+
+' -----[ I/O Definitions ]-------------------------------------------------
+
+TX              PIN     0               ' serial output to LCD
+
+
+' -----[ Constants ]-------------------------------------------------------
+
+#SELECT $STAMP
+  #CASE BS2, BS2E, BS2PE
+    T2400       CON     396
+    T9600       CON     84
+    T19K2       CON     32
+  #CASE BS2SX, BS2P
+    T2400       CON     1021
+    T9600       CON     240
+    T19K2       CON     110
+#ENDSELECT
+
+LcdBkSpc        CON     $08             ' move cursor left
+LcdRt           CON     $09             ' move cursor right
+LcdLF           CON     $0A             ' move cursor down 1 line
+LcdCls          CON     $0C             ' clear LCD (use PAUSE 5 after)
+LcdCR           CON     $0D             ' move pos 0 of next line
+LcdBLon         CON     $11             ' backlight on
+LcdBLoff        CON     $12             ' backlight off
+LcdOff          CON     $15             ' LCD off
+LcdOn1          CON     $16             ' LCD on; cursor off, blink off
+LcdOn2          CON     $17             ' LCD on; cursor off, blink on
+LcdOn3          CON     $18             ' LCD on; cursor on, blink off
+LcdOn4          CON     $19             ' LCD on; cursor on, blink on
+LcdLine1        CON     $80             ' move to line 1, column 0
+LcdLine2        CON     $94             ' move to line 2, column 0
+
+Esc             CON     27
+
+
+' -----[ Variables ]-------------------------------------------------------
+
+charIn          VAR     Byte            ' input from user
+baud            VAR     Word            ' baud rate for Serial LCD
+
+
+' -----[ Initialization ]--------------------------------------------------
+
+Reset:
+  HIGH TX                               ' setup TX pin for LCD
+  PAUSE 100                             ' allow LCD to intialize
+
+Menu:
+  DEBUG CLS,
+        "Parallax Serial LCD", CR,
+        "-------------------", CR,
+        CR,
+        "Select LCD baud rate:", CR,
+        "[1] 2400", CR,
+        "[2] 9600", CR,
+        "[3] 19200"
+
+  DEBUGIN charIn
+
+  SELECT charIn                         ' set baud to user selection
+    CASE "1"
+      baud = T2400
+    CASE "2"
+      baud = T9600
+    CASE "3"
+      baud = T19K2
+    CASE ELSE
+      GOTO Menu                         ' selection was invalid
+  ENDSELECT
+
+
+' -----[ Program Code ]----------------------------------------------------
+
+Main:
+  SEROUT TX, baud, [LcdOn3, LcdCls]     ' cursor on, clear display
+  DEBUG CLS,
+        "Just type to send a character to the Serial LCD, or", CR,
+        "To enter a value directly:", CR,
+        "-- Press [Esc]", CR,
+        "-- Enter the value (0 to 255)", CR,
+        "-- Press [Enter]"
+
+  DO
+    DEBUG CRSRXY, 0, 6, ">> ", CLREOL   ' display char prompt
+    DEBUGIN charIn                      ' get a character
+    IF (charIn = Esc) THEN
+      DEBUG CRSRXY, 0, 6, "># ", CLREOL ' display number prompt
+      DEBUGIN NUM charIn                ' accept number, any format
+    ENDIF
+    SEROUT TX, baud, [charIn]           ' send char/num to LCD
+  LOOP
+
+  END

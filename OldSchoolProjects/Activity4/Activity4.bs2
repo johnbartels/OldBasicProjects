@@ -1,0 +1,26 @@
+' {$STAMP BS2}
+' {$PBASIC 2.5}
+' Flexiforce Simple.bs2
+' Displays R/C Discharge Time in BASIC Stamp DEBUG Window
+
+' Flexiforce Simple.bs2
+' Displays R/C Discharge Time in BASIC Stamp DEBUG Window
+
+' -----[ Declarations ]----------------------------------------------------
+rawForce VAR Word ' Stores raw output
+sensorPin CON 15 ' Flexiforce sensor circuit
+rawforceratio VAR Word
+weightratio VAR Word
+weight VAR Word
+' -----[ Main Routine ]----------------------------------------------------
+Measure:
+rawforceratio = 65535 - Rawforce
+weightratio = rawforceratio / 100
+IF rawforceratio < 60000 THEN weight = (80 * weightratio - 35718)/2000
+IF rawforceratio > 60000 THEN weight = (94 * weightratio - 55181)/100
+IF rawforceratio = 65535 THEN weight = 0
+HIGH sensorPin ' Discharge the capacitor
+PAUSE 2
+RCTIME sensorPin,1,rawForce ' Measure RC charge time
+DEBUG HOME, "Flexiforce raw output = ", DEC rawForce,CR, "RawOutputRatio = ", DEC rawforceratio,CR, "WeightRatio = ", DEC weightratio,CR, "Weight = ", DEC weight,CR
+GOTO Measure

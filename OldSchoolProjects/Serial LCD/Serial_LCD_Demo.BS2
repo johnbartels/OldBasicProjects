@@ -1,0 +1,136 @@
+' =========================================================================
+'
+'   File...... Serial_LCD_Demo.BS2
+'   Purpose... Basic Serial LCD use, including customer characters
+'   Author.... (c) Parallax, Inc. -- All Rights Reserved
+'   E-mail.... support@parallax.com
+'   Started...
+'   Updated... 11 FEB 2005
+'
+'   {$STAMP BS2}
+'   {$PBASIC 2.5}
+'
+' =========================================================================
+
+
+' -----[ Program Description ]---------------------------------------------
+
+
+' -----[ Revision History ]------------------------------------------------
+
+
+' -----[ I/O Definitions ]-------------------------------------------------
+
+TX              PIN     0               ' serial output to LCD
+
+
+' -----[ Constants ]-------------------------------------------------------
+
+#SELECT $STAMP
+  #CASE BS2, BS2E, BS2PE
+    T2400       CON     396
+    T9600       CON     84
+    T19K2       CON     32
+  #CASE BS2SX, BS2P
+    T2400       CON     1021
+    T9600       CON     240
+    T19K2       CON     110
+#ENDSELECT
+
+LcdBaud         CON     T19K2
+
+LcdBkSpc        CON     $08             ' move cursor left
+LcdRt           CON     $09             ' move cursor right
+LcdLF           CON     $0A             ' move cursor down 1 line
+LcdCls          CON     $0C             ' clear LCD (use PAUSE 5 after)
+LcdCR           CON     $0D             ' move pos 0 of next line
+LcdBLon         CON     $11             ' backlight on
+LcdBLoff        CON     $12             ' backlight off
+LcdOff          CON     $15             ' LCD off
+LcdOn1          CON     $16             ' LCD on; cursor off, blink off
+LcdOn2          CON     $17             ' LCD on; cursor off, blink on
+LcdOn3          CON     $18             ' LCD on; cursor on, blink off
+LcdOn4          CON     $19             ' LCD on; cursor on, blink on
+LcdLine1        CON     $80             ' move to line 1, column 0
+LcdLine2        CON     $94             ' move to line 2, column 0
+
+LcdCC0          CON     $F8             ' define custom char 0
+LcdCC1          CON     $F9             ' define custom char 1
+LcdCC2          CON     $FA             ' define custom char 2
+LcdCC3          CON     $FB             ' define custom char 3
+LcdCC4          CON     $FC             ' define custom char 4
+LcdCC5          CON     $FD             ' define custom char 5
+LcdCC6          CON     $FE             ' define custom char 6
+LcdCC7          CON     $FF             ' define custom char 7
+
+
+' -----[ Variables ]-------------------------------------------------------
+
+idx1            VAR     Byte
+idx2            VAR     Byte
+char            VAR     Byte
+newChar         VAR     Byte
+
+
+' -----[ EEPROM Data ]-----------------------------------------------------
+
+'                       C#----  Data----------------------------------
+CC0             DATA    LcdCC0, $0E, $1F, $1C, $18, $1C, $1F, $0E, $00
+CC1             DATA    LcdCC1, $0E, $1F, $1F, $18, $1F, $1F, $0E, $00
+CC2             DATA    LcdCC2, $0E, $1F, $1F, $1F, $1F, $1F, $0E, $00
+Smiley          DATA    LcdCC3, $00, $0A, $0A, $00, $11, $0E, $06, $00
+
+Msg2            DATA    "IS VERY COOL!  ", 3
+
+
+' -----[ Initialization ]--------------------------------------------------
+
+Reset:
+  HIGH TX                               ' setup serial output pin
+  PAUSE 100                             ' allow LCD to initialize
+
+DnLoad_Custom_Chars:
+  FOR idx1 = 0 TO 35                    ' download 4 characters
+    READ CC0 + idx1, char               ' get data from table
+    SEROUT TX, LcdBaud, [char]          ' send to LCD
+  NEXT
+
+
+' -----[ Program Code ]----------------------------------------------------
+
+' Clear the display and remove cursor and blinking attributes.
+
+Main:
+  SEROUT TX, LcdBaud, [LcdBLoff, LcdOn1, LcdCls]
+  PAUSE 250
+  SEROUT TX, LcdBaud, ["THE BASIC STAMP"]
+
+
+' Scroll "chomper" animation across LCD line 2
+
+Animation:
+  FOR idx1 = 0 TO 15                    ' scroll across line
+    READ (Msg2 + idx1), newChar         ' read new character
+    FOR idx2 = 0 TO 4                   ' animate a current position
+      LOOKUP idx2, [0, 1, 2, 1, newChar], char
+      SEROUT TX, LcdBaud, [(LcdLine2 + idx1), char]
+      PAUSE 75
+    NEXT
+  NEXT
+
+
+' Flash LCD backlight (works only with backlit model)
+
+Flash:
+  FOR idx1 = 1 TO 4
+    SEROUT TX, LcdBaud, [LcdBLon]
+    PAUSE 750
+    SEROUT TX, LcdBaud, [LcdBLoff]
+    PAUSE 250
+  NEXT
+
+  GOTO Main
+  END
+
+
+' -----[ Subroutines ]-----------------------------------------------------

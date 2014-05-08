@@ -1,0 +1,128 @@
+' =========================================================================
+'
+'   File...... Serial_LCD_Demo.BS1
+'   Purpose... Basic Serial LCD use, including customer characters
+'   Author.... (c) Parallax, Inc. -- All Rights Reserved
+'   E-mail.... support@parallax.com
+'   Started...
+'   Updated... 11 FEB 2005
+'
+'   {$STAMP BS1}
+'   {$PBASIC 1.0}
+'
+' =========================================================================
+
+
+' -----[ Program Description ]---------------------------------------------
+
+
+' -----[ Revision History ]------------------------------------------------
+
+
+' -----[ I/O Definitions ]-------------------------------------------------
+
+SYMBOL  TX              = 0             ' serial output to LCD
+
+
+' -----[ Constants ]-------------------------------------------------------
+
+SYMBOL  LcdBkSpc        = $08           ' move cursor left
+SYMBOL  LcdRt           = $09           ' move cursor right
+SYMBOL  LcdLF           = $0A           ' move cursor down 1 line
+SYMBOL  LcdCls          = $0C           ' clear LCD (use PAUSE 5 after)
+SYMBOL  LcdCR           = $0D           ' move pos 0 of next line
+SYMBOL  LcdBLon         = $11           ' turn backlight on
+SYMBOL  LcdBLoff        = $12           ' turn backlight off
+SYMBOL  LcdOff          = $15           ' LCD off
+SYMBOL  LcdOn1          = $16           ' LCD on; cursor off, blink off
+SYMBOL  LcdOn2          = $17           ' LCD on; cursor off, blink on
+SYMBOL  LcdOn3          = $18           ' LCD on; cursor on, blink off
+SYMBOL  LcdOn4          = $19           ' LCD on; cursor on, blink on
+SYMBOL  LcdLine1        = $80           ' move to line 1, column 0
+SYMBOL  LcdLine2        = $94           ' move to line 2, column 0
+
+SYMBOL  LcdCC0          = $F8           ' define custom char 0
+SYMBOL  LcdCC1          = $F9           ' define custom char 1
+SYMBOL  LcdCC2          = $FA           ' define custom char 2
+SYMBOL  LcdCC3          = $FB           ' define custom char 3
+SYMBOL  LcdCC4          = $FC           ' define custom char 4
+SYMBOL  LcdCC5          = $FD           ' define custom char 5
+SYMBOL  LcdCC6          = $FE           ' define custom char 6
+SYMBOL  LcdCC7          = $FF           ' define custom char 7
+
+
+' -----[ Variables ]-------------------------------------------------------
+
+SYMBOL  idx1            = B2            ' loop counter
+SYMBOL  idx2            = B3
+SYMBOL  char            = B4            ' characters for display
+SYMBOL  newChar         = B5
+SYMBOL  pntr            = B6            ' eeprom pointer
+SYMBOL  pos             = B7            ' position
+
+
+' -----[ EEPROM Data ]-----------------------------------------------------
+
+Custom_Chars:
+  EEPROM (LcdCC0, $0E, $1F, $1C, $18, $1C, $1F, $0E, $00)
+  EEPROM (LcdCC1, $0E, $1F, $1F, $18, $1F, $1F, $0E, $00)
+  EEPROM (LcdCC2, $0E, $1F, $1F, $1F, $1F, $1F, $0E, $00)
+  EEPROM (LcdCC3, $00, $0A, $0A, $00, $11, $0E, $06, $00)
+
+Msg2:
+  EEPROM ("IS VERY COOL!  ", 3)
+
+
+' -----[ Initialization ]--------------------------------------------------
+
+Reset:
+  HIGH TX                               ' setup serial output pin
+  PAUSE 100                             ' allow LCD to initialize
+
+DnLoad_Custom_Chars:
+  FOR idx1 = 0 TO 35                    ' download 4 characters
+    READ idx1, char                     ' get data from table
+    SEROUT TX, T2400, (char)            ' send to LCD
+  NEXT
+
+
+' -----[ Program Code ]----------------------------------------------------
+
+' Clear the display and remove cursor and blinking attributes.
+
+Main:
+  SEROUT TX, T2400, (LcdBLoff, LcdOn1, LcdCls)
+  PAUSE 250
+  SEROUT TX, T2400, ("THE BASIC STAMP")
+
+
+' Scroll "chomper" animation across LCD line 2
+
+Animation:
+  FOR idx1 = 0 TO 15                    ' scroll across line
+    pntr = 36 + idx1                    ' point to new character
+    READ pntr, newChar                  ' read it
+    FOR idx2 = 0 TO 4                   ' animate current position
+      LOOKUP idx2, (0, 1, 2, 1, newChar), char
+      pos = LcdLine2 + idx1
+      SEROUT TX, T2400, (pos, char)     ' put current frame at position
+      PAUSE 75
+    NEXT
+  NEXT
+
+
+' Flash LCD backlight (works only with backlit model)
+
+Flash:
+  FOR idx1 = 1 TO 4
+    SEROUT TX, T2400, (LcdBLon)
+    PAUSE 750
+    SEROUT TX, T2400, (LcdBLoff)
+    PAUSE 250
+  NEXT
+
+  GOTO Main
+  END
+
+
+' -----[ Subroutines ]-----------------------------------------------------

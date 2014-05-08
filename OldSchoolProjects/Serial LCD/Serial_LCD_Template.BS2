@@ -1,0 +1,90 @@
+' =========================================================================
+'
+'   File...... Serial_LCD_Template.BS2
+'   Purpose... Template for Parallax Serial LCD
+'   Author.... (c) Parallax, Inc. -- All Rights Reserved
+'   E-mail.... support@parallax.com
+'   Started...
+'   Updated... 11 FEB 2005
+'
+'   {$STAMP BS2}
+'   {$PBASIC 2.5}
+'
+' =========================================================================
+
+
+' -----[ Program Description ]---------------------------------------------
+
+
+' -----[ Revision History ]------------------------------------------------
+
+
+' -----[ I/O Definitions ]-------------------------------------------------
+
+TX              PIN     0               ' serial output to LCD
+
+
+' -----[ Constants ]-------------------------------------------------------
+
+#SELECT $STAMP
+  #CASE BS2, BS2E, BS2PE
+    T2400       CON     396
+    T9600       CON     84
+    T19K2       CON     32
+  #CASE BS2SX, BS2P
+    T2400       CON     1021
+    T9600       CON     240
+    T19K2       CON     110
+#ENDSELECT
+
+LcdBaud         CON     T19K2
+
+LcdBkSpc        CON     $08             ' move cursor left
+LcdRt           CON     $09             ' move cursor right
+LcdLF           CON     $0A             ' move cursor down 1 line
+LcdCls          CON     $0C             ' clear LCD (use PAUSE 5 after)
+LcdCR           CON     $0D             ' move pos 0 of next line
+LcdBLon         CON     $11             ' backlight on
+LcdBLoff        CON     $12             ' backlight off
+LcdOff          CON     $15             ' LCD off
+LcdOn1          CON     $16             ' LCD on; cursor off, blink off
+LcdOn2          CON     $17             ' LCD on; cursor off, blink on
+LcdOn3          CON     $18             ' LCD on; cursor on, blink off
+LcdOn4          CON     $19             ' LCD on; cursor on, blink on
+LcdLine1        CON     $80             ' move to line 1, column 0
+LcdLine2        CON     $94             ' move to line 2, column 0
+
+LcdCC0          CON     $F8             ' define custom char 0
+LcdCC1          CON     $F9             ' define custom char 1
+LcdCC2          CON     $FA             ' define custom char 2
+LcdCC3          CON     $FB             ' define custom char 3
+LcdCC4          CON     $FC             ' define custom char 4
+LcdCC5          CON     $FD             ' define custom char 5
+LcdCC6          CON     $FE             ' define custom char 6
+LcdCC7          CON     $FF             ' define custom char 7
+
+
+' -----[ Variables ]-------------------------------------------------------
+
+
+' -----[ EEPROM Data ]-----------------------------------------------------
+
+
+' -----[ Initialization ]--------------------------------------------------
+
+Reset:
+  HIGH TX                               ' setup serial output pin
+  PAUSE 100                             ' allow LCD to initialize
+
+
+' -----[ Program Code ]----------------------------------------------------
+
+Main:
+
+  ' your code here
+
+  GOTO Main
+  END
+
+
+' -----[ Subroutines ]-----------------------------------------------------

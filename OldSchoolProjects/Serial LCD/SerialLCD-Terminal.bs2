@@ -1,0 +1,121 @@
+' =========================================================================
+
+'
+'   File...... SerialLCD-Terminal.bs2
+
+'   Purpose... Serial LCD Debug Terminal Demo
+'   Author.... Parallax
+'   E-mail.... support@parallax.com
+'   Started... 
+'   Updated... 08 SEP 2004
+'
+'   {$STAMP BS2}
+'   {$PBASIC 2.5}
+'
+' =========================================================================
+
+
+' -------------------------------------------------------------------------
+' Program Description
+' -------------------------------------------------------------------------
+'
+' Uses the BASIC Stamp debug terminal to send characters to
+' the Serial LCD.
+'
+' Typed characters show up automatically on the display of 
+' the Serial LCD.
+'
+' To send a command with a specific value:
+'   1) Press Esc"
+'   2) Enter the decimal value (0 to 255)
+'   3) Press Return
+'
+' This second direct command mode enables sending of all the
+' command codes, such as display on/off, cursor movement,
+' and custom characters.
+
+
+' -------------------------------------------------------------------------
+' I/O Definitions
+' -------------------------------------------------------------------------
+
+TxPin           PIN     0                       ' serial output pin
+
+
+' -------------------------------------------------------------------------
+' Constants
+' -------------------------------------------------------------------------
+
+Baud2400        CON     396                     ' baudmode constants
+Baud9600        CON     84
+Baud19200       CON     32
+
+
+' -------------------------------------------------------------------------
+' Variables
+' -------------------------------------------------------------------------
+
+in              VAR     Byte
+baud            VAR     Word
+
+
+' -------------------------------------------------------------------------
+' Initialization
+' -------------------------------------------------------------------------
+
+Setup:
+  HIGH TxPin                      ' Set pin high to be a serial port
+  PAUSE 100                       ' Pause for Serial LCD to initialize
+
+
+' -------------------------------------------------------------------------
+' Program Code
+' -------------------------------------------------------------------------
+
+Main:
+  DEBUG CLS, "Select the baud rate:"
+  DEBUG CR,  "  1 = 2400"
+  DEBUG CR,  "  2 = 9600"
+  DEBUG CR,  "  3 = 19200"
+  DEBUGIN in
+
+  SELECT in                       ' User selects the baud to use
+    CASE "1"
+      baud = Baud2400
+    CASE "2"
+      baud = Baud9600
+    CASE "3"
+      baud = Baud19200
+    CASE ELSE
+      GOTO Main
+  ENDSELECT
+ 
+  SEROUT TxPin, baud, [24,12]
+  DEBUG CLS, "Just type to send the character to the Serial LCD, or"
+  DEBUG CR,  "To enter a value directly:"
+  DEBUG CR,  "  1) Press Esc"
+  DEBUG CR,  "  2) Enter the decimal value (0 to 255)"
+  DEBUG CR,  "  3) Press Return"
+
+  DO
+    DEBUG CRSRXY, 0,6, "> "
+    DEBUGIN in
+    DEBUG CLREOL
+    IF in = 27 THEN
+      GOSUB Enter_Value
+    ELSE
+      SEROUT TxPin, baud, [in]
+    ENDIF
+  LOOP
+  END
+
+
+' -------------------------------------------------------------------------
+' Subroutine
+' -------------------------------------------------------------------------
+
+Enter_Value:
+  DEBUG CRSRXY, 0,6, ">#", CLREOL
+  DEBUGIN DEC4 in
+  SEROUT TxPin, baud, [in]
+  RETURN

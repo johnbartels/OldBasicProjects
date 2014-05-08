@@ -1,0 +1,46 @@
+' -----[ Title ]-------------------------------------------------------------------
+' Basic Analog and Digital - PL3_1R0.bs2
+' Program Listing 3.1 Revision 0.
+' {$STAMP BS2}
+' {$PBASIC 2.5}
+
+' -----[ Declarations ]------------------------------------------------------------
+adcBits         VAR     Byte
+v               VAR     Byte
+r               VAR     Byte
+v2              VAR     Byte
+v3              VAR     Byte
+
+' -----[ Initialization ]----------------------------------------------------------
+CS              PIN     0
+CLK             PIN     1
+DataOutput      PIN     2
+
+DEBUG CLS                                       'Start display.
+
+' -----[ Main Routine ]------------------------------------------------------------
+DO
+  GOSUB ADC_Data
+  GOSUB Calc_Volts
+  GOSUB Display
+LOOP
+
+'-----[ Subroutines ]--------------------------------------------------------------
+ADC_Data:
+  HIGH CS
+  LOW CS
+  LOW CLK
+  PULSOUT CLK, 210
+  SHIFTIN DataOutput,CLK,MSBPOST,[adcBits\8]
+RETURN
+
+Calc_Volts:
+  v = 5 * adcBits / 255
+RETURN
+
+Display:
+  DEBUG HOME
+  DEBUG "8 bit binary value:  ", BIN8 adcBits
+  DEBUG CR, CR, "Decimsl value:  ", DEC3 adcBits
+  DEBUG CR, CR, "DVM Reading:  ", DEC3 v, " Volts"
+RETURN

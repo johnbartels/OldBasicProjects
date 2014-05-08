@@ -1,0 +1,189 @@
+' =========================================================================
+
+'
+'   File...... SerialLCD-Animation.bs2
+
+'   Purpose... Serial LCD Custom Character Animation Demo
+'   Author.... Parallax
+'   E-mail.... support@parallax.com
+'   Started... 
+'   Updated... 08 SEP 2004
+'
+'   {$STAMP BS2}
+'   {$PBASIC 2.5}
+'
+' =========================================================================
+
+
+' -------------------------------------------------------------------------
+' Program Description
+' -------------------------------------------------------------------------
+'
+' Demonstrates the use of custom characters to perform a
+' short animation of a sunny day turning rainy on the 
+' Serial LCD display.
+'
+' The eight custom characters used in the animation are 
+' defined during initialization.
+'
+' For each animation step, a serial stream is sent to the 
+' Serial LCD for each line of the display.  First, a direct 
+' move command ($80-$8F, $94-$A3) moves the cursor to the 
+' correct location on the display.  Then, the custom 
+' characters that make up that animation step are sent.  
+' Old animations are erased by writing a space ($20) to the
+' location on the display.  Each step is followed by a pause 
+' to pace the animation correctly.
+'
+' This code uses hex values because they make it easier to 
+' see the animation.  Since all of the hex values are three
+' characters wide (i.e. $9E), the animation characters line 
+' up nicely from line to line (frame to frame), making it 
+' easier to follow the animation in the code and adjust it 
+' where desired.
+
+
+' -------------------------------------------------------------------------
+' I/O Definitions
+' -------------------------------------------------------------------------
+
+TxPin           PIN     0                       ' serial output pin
+
+
+' -------------------------------------------------------------------------
+' Constants
+' -------------------------------------------------------------------------
+
+Baud19200       CON     32                      ' baudmode constant
+PauseShort      CON     400                     ' animation pauses
+PauseLong       CON     800
+
+
+' -------------------------------------------------------------------------
+' Initialization
+' -------------------------------------------------------------------------
+
+Setup:
+  HIGH TxPin                      ' Set pin high to be a serial port
+  PAUSE 100                       ' Pause for Serial LCD to initialize
+
+  ' define the custom characters
+  ' $00 = cloud left
+  SEROUT TxPin, Baud19200, [$F8,$02,$0D,$08,$14,$10,$09,$0D,$02]
+  ' $01 = cloud center
+  SEROUT TxPin, Baud19200, [$F9,$17,$08,$08,$00,$01,$00,$15,$0A]
+  ' $02 = cloud right
+  SEROUT TxPin, Baud19200, [$FA,$08,$16,$01,$01,$01,$1A,$04,$00]
+  ' $03 = sun left
+  SEROUT TxPin, Baud19200, [$FB,$00,$0E,$00,$00,$00,$02,$04,$00]
+  ' $04 = sun center
+  SEROUT TxPin, Baud19200, [$FC,$1F,$1F,$1F,$0E,$00,$04,$04,$04]
+  ' $05 = sun right
+  SEROUT TxPin, Baud19200, [$FD,$00,$0E,$00,$00,$00,$08,$04,$00]
+  ' $06 = rain 0
+  SEROUT TxPin, Baud19200, [$FE,$11,$15,$14,$06,$0A,$0A,$19,$15]
+  ' $07 = rain 1
+  SEROUT TxPin, Baud19200, [$FF,$0A,$0A,$19,$15,$11,$15,$14,$06]
+
+  ' turn the cursor off and clear the display
+  SEROUT TxPin, Baud19200, [$16,$0C]
+  PAUSE 5
+
+
+' -------------------------------------------------------------------------
+' Program Code
+' -------------------------------------------------------------------------
+
+Main:
+  DO
+    ' sun is out
+    SEROUT TxPin, Baud19200, [$8B,$03,$04,$05]
+    SEROUT TxPin, Baud19200, [$11]
+    PAUSE PauseLong
+  
+    ' clouds move in
+    SEROUT TxPin, Baud19200, [$80,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$80,$00,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$80,$20,$00,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$81,$20,$00,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$82,$20,$00,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$83,$20,$00,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$84,$20,$00,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$85,$20,$00,$01,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$86,$20,$00,$01,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$87,$20,$00,$01,$01,$02]
+    PAUSE PauseLong
+  
+    ' sun is hidden
+    SEROUT TxPin, Baud19200, [$12]
+    SEROUT TxPin, Baud19200, [$88,$20,$00,$01,$01,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$88,$20,$00,$01,$01,$01,$02]
+    PAUSE PauseShort
+  
+    ' rain starts
+    SEROUT TxPin, Baud19200, [$9E,$06,$07,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$07,$06,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$06,$07,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$07,$06,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$06,$07,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$07,$06,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$06,$07,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$07,$06,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$20,$07,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$20,$06,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$20,$07,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$20,$06,$07]
+    PAUSE PauseShort
+  
+    ' rain slows down, clouds break up
+    SEROUT TxPin, Baud19200, [$86,$20,$20,$20,$00,$02,$00,$01,$02,$20,$20]
+    SEROUT TxPin, Baud19200, [$9E,$20,$20,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$86,$20,$20,$00,$02,$20,$00,$01,$02,$20,$20]
+    SEROUT TxPin, Baud19200, [$9E,$20,$20,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$20,$20,$06]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$9E,$20,$20,$07]
+    PAUSE PauseShort
+    SEROUT TxPin, Baud19200, [$86,$20,$00,$02,$20,$20,$03,$00,$02,$20,$20]
+    SEROUT TxPin, Baud19200, [$9E,$20,$20,$20]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$86,$00,$02,$20,$20,$20,$03,$00,$02,$20,$20]
+    PAUSE PauseLong
+  
+    ' sun comes back out
+    SEROUT TxPin, Baud19200, [$11]
+    SEROUT TxPin, Baud19200, [$86,$20,$20,$20,$20,$20,$03,$04,$00,$02,$20]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$86,$20,$20,$20,$20,$20,$03,$04,$05,$00,$02]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$86,$20,$20,$20,$20,$20,$03,$04,$05,$20,$00]
+    PAUSE PauseLong
+    SEROUT TxPin, Baud19200, [$86,$20,$20,$20,$20,$20,$03,$04,$05,$20,$20]
+  
+    ' wait before repeating
+    PAUSE 3000
+  LOOP
+  END

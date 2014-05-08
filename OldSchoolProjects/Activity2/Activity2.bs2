@@ -1,0 +1,38 @@
+' {$STAMP BS2}
+' {$PBASIC 2.5}
+' Start by defining some useful constants for the Backpack.
+
+N9600   CON $4054   ' Baudmode-9600 bps inverted. Use $40F0 for BS2-SX.
+I       CON 254     ' Instruction prefix value.
+CLR     CON 1       ' LCD clear-screen instruction.
+LINE2   CON 192     ' Address of 1st char of 2nd line.
+L1_C7   CON 135     ' Address of line 1, character 7.
+
+' Now clear the screen in case there's text left from a previous
+' run of the program. Note that there's a 1-second PAUSE prior to
+' sending any data to the Backpack. This gives the Backpack plenty
+' of time to initialize the LCD after power up.
+
+PAUSE 1000
+SEROUT 0,n9600,[I,CLR]                ' Clear the LCD screen.
+PAUSE 1
+SEROUT 0,n9600,["Weight: 37lbs"]      ' Print message.
+
+' Positioning the cursor requires sending the instruction prefix (ASCII
+' 254, assigned the symbol "I") followed by an address.
+
+SEROUT 0,n9600,[I,LINE2,"..hello world"] ' Move to line 2 and print.
+
+' Now we'll simulate a common application by printing a label on the
+' screen and updating some data by positioning the cursor.
+
+PAUSE 2000                      ' Wait 2 secs.
+SEROUT 0,n9600,[I,CLR]          ' Clear the LCD screen.
+PAUSE 1
+SEROUT 0,n9600,["Count:"]       ' Print the label.
+Again:
+SEROUT 0,n9600,[I,L1_C7]        ' Move to line 1, character 7.
+SEROUT 0,n9600,[DEC B2," "]     ' Print value of b2 followed by 2 spaces.
+B2 = B2+1                       ' Increment b2.
+PAUSE 200                       ' Slow the loop down.
+GOTO Again                      ' Repeat endlessly.

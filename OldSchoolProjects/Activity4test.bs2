@@ -1,0 +1,55 @@
+' {$STAMP BS2}
+' {$PBASIC 2.5}
+' Flexiforce Simple.bs2
+' Displays R/C Discharge Time in BASIC Stamp DEBUG Window
+
+' Flexiforce Simple.bs2
+' Displays R/C Discharge Time in BASIC Stamp DEBUG Window
+
+' -----[ Declarations ]----------------------------------------------------
+rawForce VAR Word ' Stores raw output
+sensorPin CON 15 ' Flexiforce sensor circuit
+rawforceratio VAR Word
+weightratio VAR Word
+weight VAR Word
+weight2 VAR Word
+remainder VAR Word
+N9600   CON $4054   ' Baudmode-9600 bps inverted. Use $40F0 for BS2-SX.
+I       CON 254     ' Instruction prefix value.
+CLR     CON 1       ' LCD clear-screen instruction.
+LINE2   CON 192     ' Address of 1st char of 2nd line.
+L1_C7   CON 135     ' Address of line 1, character 7.
+
+' -----[ Main Routine ]----------------------------------------------------
+
+
+
+
+Measure:
+rawforceratio = 65535 - Rawforce
+weightratio = rawforceratio / 100
+IF rawforceratio < 65535 THEN weight = (weightratio *25) / 655
+IF rawforceratio < 65535 THEN remainder = (weightratio *25) // 655
+IF rawforceratio < 65535 THEN weight2 = 100 * remainder / 655
+IF rawforceratio = 65535 THEN weight = 0
+IF rawforceratio = 65535 THEN weight2 = 0
+
+' Now clear the screen in case there's text left from a previous
+' run of the program. Note that there's a 1-second PAUSE prior to
+' sending any data to the Backpack. This gives the Backpack plenty
+' of time to initialize the LCD after power up.
+
+PAUSE 1000
+SEROUT 0,n9600,[I,CLR]                       ' Clear the LCD screen.
+PAUSE 1
+SEROUT 0,n9600,["Weight: ", DEC weight, ".", DEC2 weight2, " lbs"]      ' Print message.
+
+' Positioning the cursor requires sending the instruction prefix (ASCII
+' 254, assigned the symbol "I") followed by an address.
+
+SEROUT 0,n9600,[I,LINE2,"..hello world"] ' Move to line 2 and print.
+HIGH sensorPin ' Discharge the capacitor
+PAUSE 2
+RCTIME sensorPin,1,rawForce ' Measure RC charge time
+DEBUG HOME, "Flexiforce raw output = ", DEC rawForce,CR, "RawOutputRatio = ", DEC rawforceratio,CR, "WeightRatio = ", DEC weightratio,CR, "Weight = ", DEC weight, ".", DEC2 weight2, " lbs"
+GOTO Measure
